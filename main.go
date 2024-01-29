@@ -1,13 +1,31 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 )
 
+type Message struct {
+    Nickname string `json:"nickname"`
+    Content string `json:"content"`
+}
+
+type Chat struct {
+    messages []Message
+}
+
+var chat Chat
+
 var upgrader = websocket.Upgrader{}
+
+var internalServerError = "Internal server error"
+
+func (chat *Chat) newMessage(message Message) {
+    chat.messages = append(chat.messages, message)
+}
 
 func connectWS(w http.ResponseWriter, r *http.Request) {
     c, err := upgrader.Upgrade(w, r, nil)
@@ -16,19 +34,31 @@ func connectWS(w http.ResponseWriter, r *http.Request) {
         log.Println("Error upgrading websocket request")
         return
     }
-    
+
     defer c.Close()
     for {
-        _, message, err := c.ReadMessage()
+        _, data, err := c.ReadMessage()
 
         if err != nil {
             log.Println("Error reading message")
-            response := "Internal server error"
-            w.Write([]byte(response))
+            w.Write([]byte(internalServerError))
             break
         }
 
-        log.Println("recv: ", string(message))
+        var message Message
+        err = json.Unmarshal(data, &message)
+        if err != nil {
+            log.Println("Unprocessable data")
+            w.Write([]byte(internalServerError))
+            break
+        }
+
+        log.Println("recv: ", message.Nickname)
+        log.Println("recv: ", message.Content)
+
+        chat.newMessage(message)
+
+        log.Println(len(chat.messages))
     }
 }
 
