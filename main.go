@@ -24,6 +24,10 @@ type DeleteMessageRequest struct {
 	MessageId string `json:"messageId"`
 }
 
+type ListMessagesResponse struct {
+	Messages []Message `json:"messages"`
+}
+
 var chat Chat
 
 var upgrader = websocket.Upgrader{}
@@ -90,13 +94,15 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 		lastMessage := chat.messages[len(chat.messages)-1]
 		lastMessageId, err := strconv.Atoi(lastMessage.ID)
 
+        log.Println(lastMessageId)
+
 		if err != nil {
 			log.Println("Error converting ID to number")
 			w.Write([]byte(internalServerError))
 			break
 		}
 
-		message.ID = string(lastMessageId + 1)
+		message.ID = strconv.Itoa(lastMessageId + 1)
 
 		log.Println("recv: ", message.Nickname)
 		log.Println("recv: ", message.Content)
@@ -122,9 +128,26 @@ func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 	chat.deleteMessage(deleteMessageRequest.MessageId)
 }
 
+func listMessagesHandler(w http.ResponseWriter, r *http.Request) {
+   encoder := json.NewEncoder(w)
+
+   listMessagesResponse := ListMessagesResponse{
+       Messages: chat.messages,
+   }
+
+   err := encoder.Encode(&listMessagesResponse)
+
+   if err != nil {
+       log.Println(err.Error())
+       w.Write([]byte(internalServerError))
+       return
+   }
+}
+
 func main() {
 	http.HandleFunc("/", connectChat)
 	http.HandleFunc("/delete-message", deleteMessageHandler)
+	http.HandleFunc("/list-message", listMessagesHandler)
 	log.Println("Server listening on port: 8080")
 	http.ListenAndServe(":8080", nil)
 }
