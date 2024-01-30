@@ -4,17 +4,24 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"slices"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
 
 type Message struct {
-    Nickname string `json:"nickname"`
-    Content string `json:"content"`
+	ID       string `json:"id"`
+	Nickname string `json:"nickname"`
+	Content  string `json:"content"`
 }
 
 type Chat struct {
-    messages []Message
+	messages []Message
+}
+
+type DeleteMessageRequest struct {
+	MessageId string `json:"messageId"`
 }
 
 var chat Chat
@@ -24,46 +31,100 @@ var upgrader = websocket.Upgrader{}
 var internalServerError = "Internal server error"
 
 func (chat *Chat) newMessage(message Message) {
-    chat.messages = append(chat.messages, message)
+	chat.messages = append(chat.messages, message)
 }
 
-func connectWS(w http.ResponseWriter, r *http.Request) {
-    c, err := upgrader.Upgrade(w, r, nil)
+func (chat *Chat) deleteMessage(id string) {
+	for i, message := range chat.messages {
+		if message.ID == id {
+            log.Println("Found!")
+			chat.messages = slices.Delete(chat.messages, i, i+1)
+		}
+	}
 
-    if err != nil {
-        log.Println("Error upgrading websocket request")
-        return
-    }
+	log.Println(len(chat.messages))
+}
 
-    defer c.Close()
-    for {
-        _, data, err := c.ReadMessage()
+func (chat *Chat) isEmpty() bool {
+	return len(chat.messages) == 0
+}
 
-        if err != nil {
-            log.Println("Error reading message")
-            w.Write([]byte(internalServerError))
-            break
-        }
+func connectChat(w http.ResponseWriter, r *http.Request) {
+	c, err := upgrader.Upgrade(w, r, nil)
 
-        var message Message
-        err = json.Unmarshal(data, &message)
-        if err != nil {
-            log.Println("Unprocessable data")
-            w.Write([]byte(internalServerError))
-            break
-        }
+	if err != nil {
+		log.Println("Error upgrading websocket request")
+		return
+	}
 
-        log.Println("recv: ", message.Nickname)
-        log.Println("recv: ", message.Content)
+	defer c.Close()
+	for {
+		_, data, err := c.ReadMessage()
 
-        chat.newMessage(message)
+		if err != nil {
+			log.Println("Error reading message")
+			w.Write([]byte(internalServerError))
+			break
+		}
 
-        log.Println(len(chat.messages))
-    }
+		var message Message
+		err = json.Unmarshal(data, &message)
+		if err != nil {
+			log.Println("Unprocessable data")
+			w.Write([]byte(internalServerError))
+			break
+		}
+
+		if chat.isEmpty() {
+			log.Println("Chat is empty")
+			message.ID = "1"
+
+			log.Println("recv: ", message.Nickname)
+			log.Println("recv: ", message.Content)
+			chat.newMessage(message)
+			log.Println(len(chat.messages))
+
+			continue
+		}
+
+		lastMessage := chat.messages[len(chat.messages)-1]
+		lastMessageId, err := strconv.Atoi(lastMessage.ID)
+
+		if err != nil {
+			log.Println("Error converting ID to number")
+			w.Write([]byte(internalServerError))
+			break
+		}
+
+		message.ID = string(lastMessageId + 1)
+
+		log.Println("recv: ", message.Nickname)
+		log.Println("recv: ", message.Content)
+		chat.newMessage(message)
+		log.Println(len(chat.messages))
+	}
+}
+
+func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Delete message handler!")
+	var deleteMessageRequest DeleteMessageRequest
+
+    decoder := json.NewDecoder(r.Body)
+
+    err := decoder.Decode(&deleteMessageRequest)
+
+	if err != nil {
+        log.Println(err.Error())
+		w.Write([]byte(internalServerError))
+		return
+	}
+
+	chat.deleteMessage(deleteMessageRequest.MessageId)
 }
 
 func main() {
-    http.HandleFunc("/", connectWS)
-    log.Println("Server listening on port: 8080")
-    http.ListenAndServe(":8080", nil)
+	http.HandleFunc("/", connectChat)
+	http.HandleFunc("/delete-message", deleteMessageHandler)
+	log.Println("Server listening on port: 8080")
+	http.ListenAndServe(":8080", nil)
 }
