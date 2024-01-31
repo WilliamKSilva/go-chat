@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"path"
 	"slices"
 	"strconv"
 
@@ -26,6 +28,10 @@ type DeleteMessageRequest struct {
 
 type ListMessagesResponse struct {
 	Messages []Message `json:"messages"`
+}
+
+type HTMLFileData struct {
+    data []byte
 }
 
 var chat Chat
@@ -141,10 +147,32 @@ func listMessagesHandler(w http.ResponseWriter, r *http.Request) {
    }
 }
 
+func (d HTMLFileData) chatHandler(w http.ResponseWriter, r *http.Request) {
+    w.Write(d.data)
+}
+
 func main() {
-	http.HandleFunc("/", connectChat)
+    gp := os.Getenv("GOPATH")
+    htmlPath := path.Join(gp, "web/index.html")
+
+    data, err := os.ReadFile(htmlPath)
+
+    if err != nil {
+        log.Fatal(err.Error())
+    }
+
+    htmlFile := HTMLFileData{
+        data: data,
+    }
+
+    if err != nil {
+        log.Fatal(err.Error())
+    }
+
+	http.HandleFunc("/chat", connectChat)
 	http.HandleFunc("/delete-message", deleteMessageHandler)
 	http.HandleFunc("/list-message", listMessagesHandler)
+	http.HandleFunc("/", htmlFile.chatHandler)
 	log.Println("Server listening on port: 8080")
 	http.ListenAndServe(":8080", nil)
 }
