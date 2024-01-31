@@ -12,7 +12,14 @@ import (
 
 var addr = flag.String("addr", "localhost:8080", "http service address") 
 
-func main() {
+func sendMessage(c *websocket.Conn, data []byte) {
+    err := c.WriteMessage(websocket.TextMessage, data)
+    if err != nil {
+        log.Fatal(err.Error())
+    }
+}
+
+func connectWebsocket() {
     u := url.URL{Scheme: "ws", Host: *addr, Path: "/"}
     c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
     if err != nil {
@@ -20,26 +27,24 @@ func main() {
     }
     defer c.Close()
 
-    log.Println("Connected to chat!")
+    message := chat.Message{
+        Nickname: "ddos",
+        Content: "This is an spam test",
+    }
+    data, err := json.Marshal(message)
+    if err != nil {
+        log.Println(err.Error())
+    }
 
     for {
-        message := chat.Message{
-            Nickname: "ddos",
-            Content: "This is an spam test",
-        }
-        data, err := json.Marshal(message)
-        if err != nil {
-            log.Println(err.Error())
-        }
-
-        log.Println(data)
-
-        err = c.WriteMessage(websocket.TextMessage, data)
-        if err != nil {
-            log.Println(err.Error())
-        }
-
+        sendMessage(c, data)
+        
         log.Println("Message sent!")
     }
-    
+}
+
+func main() {
+    for {
+        go connectWebsocket()
+    }
 }

@@ -103,9 +103,9 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 		log.Println("recv: ", message.Nickname)
 		log.Println("recv: ", message.Content)
 		chat.newMessage(message)
-	}
 
-	log.Println(len(chat.messages))
+	    log.Println(len(chat.messages))
+	}
 }
 
 func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {
