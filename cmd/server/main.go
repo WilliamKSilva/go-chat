@@ -65,8 +65,10 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, data, err := c.ReadMessage()
 
+        log.Println(data)
+
 		if err != nil {
-			log.Println("Error reading message")
+			log.Println(err.Error())
 			w.Write([]byte(internalServerError))
 			break
 		}
