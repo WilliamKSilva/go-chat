@@ -65,8 +65,6 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, data, err := c.ReadMessage()
 
-        log.Println(data)
-
 		if err != nil {
 			log.Println(err.Error())
 			w.Write([]byte(internalServerError))
@@ -76,19 +74,17 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 		var message Message
 		err = json.Unmarshal(data, &message)
 		if err != nil {
-			log.Println("Unprocessable data")
+			log.Println(err.Error())
 			w.Write([]byte(internalServerError))
 			break
 		}
 
 		if chat.isEmpty() {
-			log.Println("Chat is empty")
 			message.ID = "1"
 
 			log.Println("recv: ", message.Nickname)
 			log.Println("recv: ", message.Content)
 			chat.newMessage(message)
-			log.Println(len(chat.messages))
 
 			continue
 		}
@@ -96,10 +92,8 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 		lastMessage := chat.messages[len(chat.messages)-1]
 		lastMessageId, err := strconv.Atoi(lastMessage.ID)
 
-        log.Println(lastMessageId)
-
 		if err != nil {
-			log.Println("Error converting ID to number")
+			log.Println(err.Error())
 			w.Write([]byte(internalServerError))
 			break
 		}
@@ -109,8 +103,9 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 		log.Println("recv: ", message.Nickname)
 		log.Println("recv: ", message.Content)
 		chat.newMessage(message)
-		log.Println(len(chat.messages))
 	}
+
+	log.Println(len(chat.messages))
 }
 
 func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {

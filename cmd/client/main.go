@@ -16,11 +16,11 @@ func main() {
     u := url.URL{Scheme: "ws", Host: *addr, Path: "/"}
     c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
     if err != nil {
-        log.Fatal("Failed to connect to chat")
+        log.Fatal(err.Error())
     }
     defer c.Close()
 
-    log.Fatal("Connected to chat!")
+    log.Println("Connected to chat!")
 
     for {
         message := chat.Message{
@@ -29,14 +29,14 @@ func main() {
         }
         data, err := json.Marshal(message)
         if err != nil {
-            log.Println("Error on data Marshal")
+            log.Println(err.Error())
         }
 
         log.Println(data)
 
         err = c.WriteMessage(websocket.TextMessage, data)
         if err != nil {
-            log.Println("Error trying to send chat message")
+            log.Println(err.Error())
         }
 
         log.Println("Message sent!")
