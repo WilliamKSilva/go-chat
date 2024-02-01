@@ -9,17 +9,12 @@ import (
 	"slices"
 	"strconv"
 
+	chatPackage "github.com/WilliamKSilva/go-chat/internal"
 	"github.com/gorilla/websocket"
 )
 
-type Message struct {
-	ID       string `json:"id"`
-	Nickname string `json:"nickname"`
-	Content  string `json:"content"`
-}
-
 type Chat struct {
-	messages []Message
+	messages []chatPackage.Message
 }
 
 type DeleteMessageRequest struct {
@@ -27,10 +22,10 @@ type DeleteMessageRequest struct {
 }
 
 type ListMessagesResponse struct {
-	Messages []Message `json:"messages"`
+	Messages []chatPackage.Message `json:"messages"`
 }
 
-type HTMLFileData struct {
+type HTMLFile struct {
     data []byte
 }
 
@@ -40,7 +35,7 @@ var upgrader = websocket.Upgrader{}
 
 var internalServerError = "Internal server error"
 
-func (chat *Chat) newMessage(message Message) {
+func (chat *Chat) newMessage(message chatPackage.Message) {
 	chat.messages = append(chat.messages, message)
 }
 
@@ -77,7 +72,7 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		var message Message
+		var message chatPackage.Message 
 		err = json.Unmarshal(data, &message)
 		if err != nil {
 			log.Println(err.Error())
@@ -147,8 +142,8 @@ func listMessagesHandler(w http.ResponseWriter, r *http.Request) {
    }
 }
 
-func (d HTMLFileData) chatHandler(w http.ResponseWriter, r *http.Request) {
-    w.Write(d.data)
+func (f HTMLFile) chatHandler(w http.ResponseWriter, r *http.Request) {
+    w.Write(f.data)
 }
 
 func main() {
@@ -161,7 +156,7 @@ func main() {
         log.Fatal(err.Error())
     }
 
-    htmlFile := HTMLFileData{
+    htmlFile := HTMLFile{
         data: data,
     }
 
