@@ -21,16 +21,12 @@ do
 
     LAST_CHANGES_SIZE=$CHANGES_OUTPUT_LENGTH
 
-    if [ ! "$FIRST_COMPILE_DONE" ] || [ "$CHANGES_OUTPUT_LENGTH" -gt 0 ];
-    then
-        if ((!$FIRST_COMPILE_DONE));
-        then
+    if [ "$FIRST_COMPILE_DONE" != "true" ] || [ "$CHANGES_OUTPUT_LENGTH" -gt 0 ]; then
+        if [ "$FIRST_COMPILE_DONE" != "true" ]; then
             FIRST_COMPILE_DONE=true
         fi
 
         echo "Recompiled!"
-        $($GOCOMPILER run $ENTRYPOINT_SERVER) &
+        $GOCOMPILER run $ENTRYPOINT_SERVER &
     fi
-
-
 done
