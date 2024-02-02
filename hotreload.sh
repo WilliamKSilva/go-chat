@@ -21,11 +21,10 @@ do
 
     LAST_CHANGES_SIZE=$CHANGES_OUTPUT_LENGTH
 
-    if (($CHANGES_OUTPUT_LENGTH > 0));
+    if (($CHANGES_OUTPUT_LENGTH > 0)) || $FIRST_COMPILE;
     then
-        if [$FIRST_COMPILE!];
+        if ((!$FIRST_COMPILE));
         then
-            echo "First compile"
             FIRST_COMPILE=true
         fi
 
