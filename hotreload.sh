@@ -23,7 +23,7 @@ do
     LAST_CHANGES_SIZE=$CHANGES_OUTPUT_LENGTH
 
     if (( !$FIRST_COMPILE_DONE )) || (($CHANGES_OUTPUT_LENGTH > 1000)); then
-        if [ "$FIRST_COMPILE_DONE" != "true" ]; then
+        if (( !$FIRST_COMPILE_DONE )); then
             FIRST_COMPILE_DONE=true
         fi
 
