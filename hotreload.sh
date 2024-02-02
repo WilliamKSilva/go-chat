@@ -27,6 +27,6 @@ do
         fi
 
         echo "Recompiled!"
-        $GOCOMPILER run $ENTRYPOINT &
+        $GOCOMPILER run $ENTRYPOINT_SERVER &
     fi
 done
