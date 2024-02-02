@@ -23,6 +23,7 @@ do
 
     if (($CHANGES_OUTPUT_LENGTH > 0)) || ((!$FIRST_COMPILE_DONE));
     then
+        echo "RECOMPILE CONDITION"
         if ((!$FIRST_COMPILE_DONE));
         then
             FIRST_COMPILE_DONE=true
