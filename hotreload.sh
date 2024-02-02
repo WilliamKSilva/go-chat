@@ -21,7 +21,7 @@ do
 
     LAST_CHANGES_SIZE=$CHANGES_OUTPUT_LENGTH
 
-    if (($FIRST_COMPILE_DONE == false )) || (($CHANGES_OUTPUT_LENGTH > 0));
+    if [ ! "$FIRST_COMPILE_DONE" ] || [ "$CHANGES_OUTPUT_LENGTH" -gt 0 ];
     then
         if ((!$FIRST_COMPILE_DONE));
         then
