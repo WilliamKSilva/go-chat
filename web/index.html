@@ -1,7 +1,32 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Title of the document</title>
+    <script>
+        // TODO: move this to an script.js file 
+        const messages = [
+            {nickname: "william", content: "aiuhdsahda"},
+            {nickname: "ioasdiuas", content: "uihdsauda"}
+        ];
+
+        function renderMessages() {
+            const list = document.getElementById("messages");
+
+            for (const message of messages) {
+                const item = document.createElement("li");
+                item.textContent = message.content 
+                list.appendChild(item)
+            }
+        }
+
+
+
+        document.addEventListener("DOMContentLoaded", function(){
+            // Render stuff
+            renderMessages();
+        });
+
+    </script>
+    <title>Cool Chat</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style>
       html,
@@ -18,18 +43,66 @@
       }
 
       .chat {
+        display: flex;
+        flex-direction: column;
         height: 80%;
         width: 50%;
-        background-color: red;
+        background-color: #C8C8C8;
+        box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
       }
+
+      .messages-wrapper {
+          height: 90%;
+          width: 100%;
+      }
+
+      .messages-list {
+          flex-grow: 1;
+          list-style-type: none;
+      }
+
+      .message {
+          width: 20%;
+          background-color: orange;
+          border: 0px;
+      }
+
+      .user-input-wrapper {
+        display: flex;
+        align-items: cente;
+        flex-direction: row;
+        height: 10%;
+      }
+
+      .user-input {
+          width: 80%;
+          padding: 0px;
+          border: 0;
+      }
+        
+      .user-send-button {
+          flex-grow: 1;
+          border: 0;
+      }
+
     </style>
   </head>
   <body>
     <main>
         <div class="chat">
-            <p>
-                teste
-            </p>
+            <div class="messages-wrapper">
+                <li id="messages" class="messages-list">
+                </li>
+            </div>
+            <section class="user-input-wrapper">
+                <input
+                    class="user-input"
+                    placeholder="Write your message here..."
+                />
+                <button class="user-send-button">
+                    Send
+                </button>
+            </section>
         </div>
     </main>
   </body>
