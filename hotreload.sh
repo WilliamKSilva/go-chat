@@ -14,9 +14,6 @@ while true
 do
     CHANGES=$($GIT diff)
     CHANGES_OUTPUT_LENGTH=$(printf "%s" "$CHANGES" | wc -c)
-    echo $FIRST_COMPILE_DONE
-    echo $CHANGES_OUTPUT_LENGTH
-    echo $LAST_CHANGES_SIZE
     if (($CHANGES_OUTPUT_LENGTH == $LAST_CHANGES_SIZE)) && $FIRST_COMPILE_DONE;
     then
         continue
@@ -24,7 +21,7 @@ do
 
     LAST_CHANGES_SIZE=$CHANGES_OUTPUT_LENGTH
 
-    if (( !$FIRST_COMPILE_DONE )) || (($CHANGES_OUTPUT_LENGTH > 1000)); then
+    if (( !$FIRST_COMPILE_DONE )) || (($CHANGES_OUTPUT_LENGTH > 0)); then
         if (( !$FIRST_COMPILE_DONE )); then
             FIRST_COMPILE_DONE=true
         fi
