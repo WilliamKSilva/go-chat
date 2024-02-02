@@ -42,12 +42,9 @@ func (chat *Chat) newMessage(message chatPackage.Message) {
 func (chat *Chat) deleteMessage(id string) {
 	for i, message := range chat.messages {
 		if message.ID == id {
-            log.Println("Found!")
 			chat.messages = slices.Delete(chat.messages, i, i+1)
 		}
 	}
-
-	log.Println(len(chat.messages))
 }
 
 func (chat *Chat) isEmpty() bool {
@@ -127,19 +124,22 @@ func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func listMessagesHandler(w http.ResponseWriter, r *http.Request) {
-   encoder := json.NewEncoder(w)
-
+   // TODO: This will be used by the Javascript script file to display the content
+   // on the HTML page. Maybe there is an better way of injecting the data
+   // on HTML directly from the server but I dont know yet.
    listMessagesResponse := ListMessagesResponse{
        Messages: chat.messages,
    }
 
-   err := encoder.Encode(&listMessagesResponse)
+   data, err := json.Marshal(listMessagesResponse)
 
    if err != nil {
        log.Println(err.Error())
        w.Write([]byte(internalServerError))
        return
    }
+
+   w.Write(data)
 }
 
 func (f HTMLFile) chatHandler(w http.ResponseWriter, r *http.Request) {
@@ -163,6 +163,12 @@ func main() {
     if err != nil {
         log.Fatal(err.Error())
     }
+
+    message := chatPackage.Message{
+        Nickname: "test",
+        Content: "teste",
+    }
+    chat.newMessage(message)
 
 	http.HandleFunc("/chat", connectChat)
 	http.HandleFunc("/delete-message", deleteMessageHandler)

@@ -3,28 +3,29 @@
   <head>
     <script>
         // TODO: move this to an script.js file 
-        const messages = [
-            {nickname: "william", content: "aiuhdsahda"},
-            {nickname: "ioasdiuas", content: "uihdsauda"}
-        ];
-
-        function renderMessages() {
+        async function renderMessages() {
             const list = document.getElementById("messages");
+            
+            const response = await fetch("http://localhost:8080/list-message")
 
-            for (const message of messages) {
+            const messagesData = await response.json()
+
+            for (const message of messagesData.messages) {
                 const item = document.createElement("li");
                 item.textContent = message.content 
                 list.appendChild(item)
             }
         }
 
+        async function sendMessage() {
+            const input = document.getElementById("user-input")
+            await fetch("http://localhost:8080/new-message")
+        }
 
-
-        document.addEventListener("DOMContentLoaded", function(){
+        document.addEventListener("DOMContentLoaded", async function(){
             // Render stuff
-            renderMessages();
+            await renderMessages();
         });
-
     </script>
     <title>Cool Chat</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -96,6 +97,7 @@
             </div>
             <section class="user-input-wrapper">
                 <input
+                    id="user-input"
                     class="user-input"
                     placeholder="Write your message here..."
                 />
