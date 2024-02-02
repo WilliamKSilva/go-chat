@@ -16,6 +16,7 @@ do
     CHANGES_OUTPUT_LENGTH=$(printf "%s" "$CHANGES" | wc -c)
     if (($CHANGES_OUTPUT_LENGTH == $LAST_CHANGES_SIZE && $FIRST_COMPILE_DONE == true));
     then
+        echo "continue"
         continue
     fi
 
