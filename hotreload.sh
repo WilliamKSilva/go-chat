@@ -8,6 +8,7 @@ ENTRYPOINT_SERVER="${ROOTDIR}/cmd/server/main.go"
 GIT='git --git-dir='$PWD'/.git'
 GOCOMPILER='/usr/local/go/bin/go'
 
+FIRST_COMPILE=false
 LAST_CHANGES_SIZE=0
 while true
 do
@@ -22,6 +23,12 @@ do
 
     if (($CHANGES_OUTPUT_LENGTH > 0));
     then
+        if [$FIRST_COMPILE!];
+        then
+            echo "First compile"
+            FIRST_COMPILE=true
+        fi
+
         echo "Recompiled!"
         $($GOCOMPILER run $ENTRYPOINT_SERVER) &
     fi
