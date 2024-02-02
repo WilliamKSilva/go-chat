@@ -21,9 +21,10 @@ do
 
     LAST_CHANGES_SIZE=$CHANGES_OUTPUT_LENGTH
 
-    if [[ ($CHANGES_OUTPUT_LENGTH > 0) || (!$FIRST_COMPILE_DONE) ]];
+    echo $FIRST_COMPILE_DONE
+
+    if ((!$FIRST_COMPILE_DONE)) || (($CHANGES_OUTPUT_LENGTH > 0));
     then
-        echo "RECOMPILE CONDITION"
         if ((!$FIRST_COMPILE_DONE));
         then
             FIRST_COMPILE_DONE=true
