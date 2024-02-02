@@ -21,8 +21,15 @@ do
 
     LAST_CHANGES_SIZE=$CHANGES_OUTPUT_LENGTH
 
+<<<<<<< HEAD
     if (( !$FIRST_COMPILE_DONE )) || (($CHANGES_OUTPUT_LENGTH > 0)); then
         if (( !$FIRST_COMPILE_DONE )); then
+=======
+    if ((!$FIRST_COMPILE_DONE)) || (($CHANGES_OUTPUT_LENGTH > 0));
+    then
+        if ((!$FIRST_COMPILE_DONE));
+        then
+>>>>>>> parent of f7ab3c7 (fix: change recompile condition order)
             FIRST_COMPILE_DONE=true
         fi
 
