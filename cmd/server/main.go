@@ -70,7 +70,7 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		_, data, err := c.ReadMessage()
-
+        
 		if err != nil {
 			log.Println(err.Error())
 			w.Write([]byte(internalServerError))
@@ -79,10 +79,11 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 
 		var message chatPackage.Message 
 		err = json.Unmarshal(data, &message)
+
+        // If there is an error the content is probably plain text
 		if err != nil {
-			log.Println(err.Error())
-			w.Write([]byte(internalServerError))
-			break
+            log.Println(string(data))
+            return
 		}
 
 		if chat.isEmpty() {

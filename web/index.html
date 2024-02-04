@@ -4,9 +4,19 @@
     <script>
         // TODO: move this to an script.js" file 
         const websocketURL = "ws://localhost:8080/chat"
+        let socket;
 
+        document.addEventListener("DOMContentLoaded", async function(){
+            setChatFormListener();
+            await renderMessages();
+
+            connectWebsocket();
+            setWebsocketListeners(socket);
+        });
+
+        /* Websockets */
         function connectWebsocket() {
-            return new WebSocket(websocketURL);
+            socket = new WebSocket(websocketURL);
         }
 
         function setWebsocketListeners(socket) {
@@ -19,6 +29,16 @@
             })
         }
 
+        function sendWebsocketMessage(message) {
+            if (!socket) {
+                throw new Error("Websocket connection is not established!")
+            }
+
+            console.log("Message sent!")
+            socket.send(message)
+        }
+
+        /* Messages */
         async function renderMessages() {
             const list = document.getElementById("messages");
             
@@ -34,18 +54,20 @@
         }
 
         async function sendMessage() {
-            const input = document.getElementById("user-input")
             await fetch("http://localhost:8080/new-message")
         }
 
-        document.addEventListener("DOMContentLoaded", async function(){
-            // Render stuff
-            await renderMessages();
+        function setChatFormListener() {
+            const form = document.getElementById("chat-form");
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
 
-            // Websocket
-            const websocket = connectWebsocket();
-            setWebsocketListeners(websocket);
-        });
+                const formData = new FormData(form);
+                const message = formData.get("message");
+
+                sendWebsocketMessage(message);
+            });
+        } 
     </script>
     <title>Cool Chat</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -88,20 +110,20 @@
           border: 0px;
       }
 
-      .user-input-wrapper {
+      .chat-form {
         display: flex;
         align-items: cente;
         flex-direction: row;
         height: 10%;
       }
 
-      .user-input {
+      .chat-input {
           width: 80%;
           padding: 0px;
           border: 0;
       }
         
-      .user-send-button {
+      .chat-send-button {
           flex-grow: 1;
           border: 0;
       }
@@ -115,16 +137,17 @@
                 <li id="messages" class="messages-list">
                 </li>
             </div>
-            <section class="user-input-wrapper">
+            <form id="chat-form" class="chat-form">
                 <input
-                    id="user-input"
-                    class="user-input"
+                    id="chat-input"
+                    name="message"
+                    class="chat-input"
                     placeholder="Write your message here..."
                 />
-                <button class="user-send-button">
+                <button class="chat-send-button">
                     Send
                 </button>
-            </section>
+            </form>
         </div>
     </main>
   </body>
