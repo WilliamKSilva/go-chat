@@ -60,6 +60,14 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer c.Close()
+
+    err = c.WriteMessage(websocket.TextMessage, []byte("Hello client!"))
+
+    if err != nil {
+        log.Println("Error sending message")
+        return
+    }
+
 	for {
 		_, data, err := c.ReadMessage()
 

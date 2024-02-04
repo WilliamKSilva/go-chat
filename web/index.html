@@ -2,7 +2,23 @@
 <html>
   <head>
     <script>
-        // TODO: move this to an script.js file 
+        // TODO: move this to an script.js" file 
+        const websocketURL = "ws://localhost:8080/chat"
+
+        function connectWebsocket() {
+            return new WebSocket(websocketURL);
+        }
+
+        function setWebsocketListeners(socket) {
+            socket.addEventListener("open", (event) => {
+                console.log("Websocket connection established")
+            }) 
+
+            socket.addEventListener("message", (event) => {
+                console.log("recv: ", event.data)
+            })
+        }
+
         async function renderMessages() {
             const list = document.getElementById("messages");
             
@@ -25,6 +41,10 @@
         document.addEventListener("DOMContentLoaded", async function(){
             // Render stuff
             await renderMessages();
+
+            // Websocket
+            const websocket = connectWebsocket();
+            setWebsocketListeners(websocket);
         });
     </script>
     <title>Cool Chat</title>
