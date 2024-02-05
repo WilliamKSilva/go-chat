@@ -8,6 +8,14 @@ type Message struct {
 	Content  string `json:"content"`
 }
 
+type DeleteMessageRequest struct {
+	MessageId string `json:"messageId"`
+}
+
+type ListMessagesResponse struct {
+	Messages []Message `json:"messages"`
+}
+
 type Chat struct {
 	Messages []Message
 }
