@@ -20,6 +20,7 @@ type HttpHandler struct {
 }
 
 var upgrader = websocket.Upgrader{}
+var internalServerError string = "Internal server error"
 
 func (httpHandler HttpHandler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	log.Println("Delete message handler!")
@@ -31,8 +32,7 @@ func (httpHandler HttpHandler) DeleteMessage(w http.ResponseWriter, r *http.Requ
 
 	if err != nil {
 		log.Println(err.Error())
-        // TODO: error handler
-		// w.Write([]byte(internalServerError))
+		w.Write([]byte(internalServerError))
 		return
 	}
 
@@ -51,8 +51,7 @@ func (httpHandler HttpHandler) ListMessages(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		log.Println(err.Error())
-        // TODO: error handler
-		// w.Write([]byte(internalServerError))
+		w.Write([]byte(internalServerError))
 		return
 	}
 
@@ -85,8 +84,7 @@ func (httpHandler HttpHandler) Websocket(w http.ResponseWriter, r *http.Request)
         
 		if err != nil {
 			log.Println(err.Error())
-            // TODO: error handler
-			// w.Write([]byte(internalServerError))
+			w.Write([]byte(internalServerError))
 			break
 		}
 
@@ -114,8 +112,7 @@ func (httpHandler HttpHandler) Websocket(w http.ResponseWriter, r *http.Request)
 
 		if err != nil {
 			log.Println(err.Error())
-            // TODO: error handler
-			// w.Write([]byte(internalServerError))
+			w.Write([]byte(internalServerError))
 			break
 		}
 
