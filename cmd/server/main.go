@@ -7,7 +7,7 @@ import (
 	"path"
 
     . "github.com/WilliamKSilva/go-chat/pkg/chat"
-    . "github.com/WilliamKSilva/go-chat/pkg/httpHandler"
+    . "github.com/WilliamKSilva/go-chat/pkg/handler"
 )
 
 var httpHandler HttpHandler
