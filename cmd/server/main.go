@@ -6,23 +6,18 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"slices"
 	"strconv"
 
-	chatPackage "github.com/WilliamKSilva/go-chat/internal"
 	"github.com/gorilla/websocket"
+    . "github.com/WilliamKSilva/go-chat/pkg/chat"
 )
-
-type Chat struct {
-	messages []chatPackage.Message
-}
 
 type DeleteMessageRequest struct {
 	MessageId string `json:"messageId"`
 }
 
 type ListMessagesResponse struct {
-	Messages []chatPackage.Message `json:"messages"`
+	Messages []Message `json:"messages"`
 }
 
 type HTMLFile struct {
@@ -34,22 +29,6 @@ var chat Chat
 var upgrader = websocket.Upgrader{}
 
 var internalServerError = "Internal server error"
-
-func (chat *Chat) newMessage(message chatPackage.Message) {
-	chat.messages = append(chat.messages, message)
-}
-
-func (chat *Chat) deleteMessage(id string) {
-	for i, message := range chat.messages {
-		if message.ID == id {
-			chat.messages = slices.Delete(chat.messages, i, i+1)
-		}
-	}
-}
-
-func (chat *Chat) isEmpty() bool {
-	return len(chat.messages) == 0
-}
 
 func connectChat(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
@@ -77,7 +56,7 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		var message chatPackage.Message 
+		var message Message 
 		err = json.Unmarshal(data, &message)
 
         // If there is an error the content is probably plain text
@@ -86,17 +65,17 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
             return
 		}
 
-		if chat.isEmpty() {
+		if chat.IsEmpty() {
 			message.ID = "1"
 
 			log.Println("recv: ", message.Nickname)
 			log.Println("recv: ", message.Content)
-			chat.newMessage(message)
+			chat.NewMessage(message)
 
 			continue
 		}
 
-		lastMessage := chat.messages[len(chat.messages)-1]
+		lastMessage := chat.Messages[len(chat.Messages)-1]
 		lastMessageId, err := strconv.Atoi(lastMessage.ID)
 
 		if err != nil {
@@ -109,9 +88,9 @@ func connectChat(w http.ResponseWriter, r *http.Request) {
 
 		log.Println("recv: ", message.Nickname)
 		log.Println("recv: ", message.Content)
-		chat.newMessage(message)
+		chat.NewMessage(message)
 
-	    log.Println(len(chat.messages))
+	    log.Println(len(chat.Messages))
 	}
 }
 
@@ -129,7 +108,7 @@ func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	chat.deleteMessage(deleteMessageRequest.MessageId)
+	chat.DeleteMessage(deleteMessageRequest.MessageId)
 }
 
 func listMessagesHandler(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +116,7 @@ func listMessagesHandler(w http.ResponseWriter, r *http.Request) {
    // on the HTML page. Maybe there is an better way of injecting the data
    // on HTML directly from the server but I dont know yet.
    listMessagesResponse := ListMessagesResponse{
-       Messages: chat.messages,
+       Messages: chat.Messages,
    }
 
    data, err := json.Marshal(listMessagesResponse)
@@ -173,11 +152,11 @@ func main() {
         log.Fatal(err.Error())
     }
 
-    message := chatPackage.Message{
+    message := Message{
         Nickname: "test",
         Content: "teste",
     }
-    chat.newMessage(message)
+    chat.NewMessage(message)
 
 	http.HandleFunc("/chat", connectChat)
 	http.HandleFunc("/delete-message", deleteMessageHandler)
