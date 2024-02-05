@@ -5,3 +5,7 @@ type Message struct {
 	Nickname string `json:"nickname"`
 	Content  string `json:"content"`
 }
+
+type Chat struct {
+	messages []Message
+}
