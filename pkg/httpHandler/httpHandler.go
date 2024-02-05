@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	c "github.com/WilliamKSilva/go-chat/pkg/chat"
+	. "github.com/WilliamKSilva/go-chat/pkg/chat"
 	"github.com/gorilla/websocket"
 )
 
@@ -15,7 +15,7 @@ type HTMLFile struct {
 }
 
 type HttpHandler struct {
-    Chat c.Chat
+    Chat Chat
     HtmlFile HTMLFile 
 }
 
@@ -24,7 +24,7 @@ var internalServerError string = "Internal server error"
 
 func (httpHandler *HttpHandler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	log.Println("Delete message handler!")
-	var deleteMessageRequest c.DeleteMessageRequest
+	var deleteMessageRequest DeleteMessageRequest
 
 	decoder := json.NewDecoder(r.Body)
 
@@ -43,7 +43,7 @@ func (httpHandler *HttpHandler) ListMessages(w http.ResponseWriter, r *http.Requ
 	// TODO: This will be used by the Javascript script file to display the content
 	// on the HTML page. Maybe there is an better way of injecting the data
 	// on HTML directly from the server but I dont know yet.
-	listMessagesResponse := c.ListMessagesResponse{
+	listMessagesResponse := ListMessagesResponse{
 		Messages: httpHandler.Chat.Messages,
 	}
 
@@ -84,13 +84,9 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
     httpHandler.Chat.UpdateMessagesChannel.NewListener()
 
 	for {
-        go func() {
-            msg := <-httpHandler.Chat.UpdateMessagesChannel.Channel
+        // Listening to messages list update channel notify
+        go httpHandler.Chat.UpdateMessagesChannel.Listening(httpHandler.Chat.Messages, conn)
 
-            if msg {
-                httpHandler.updateClientMessages(conn)
-            }
-        }()
 		_, data, err := conn.ReadMessage()
         
 		if err != nil {
@@ -99,7 +95,7 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
 			break
 		}
 
-		var message c.Message 
+		var message Message 
 		err = json.Unmarshal(data, &message)
 
         // If there is an error the content is probably plain text
@@ -132,32 +128,4 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
 
 		httpHandler.Chat.NewMessage(message)
 	}
-}
-
-// This works but it is expensive i guess
-func (httpHandler *HttpHandler) listenToUpdateNotify(conn *websocket.Conn) {
-    for {
-        // update := httpHandler.Chat.MessagesUpdate.Read()
-        // if update {
-            // httpHandler.updateClientMessages(conn)
-        // }
-    }
-}
-
-// Send all messages to user client when new messages are added
-func (httpHandler *HttpHandler) updateClientMessages(conn *websocket.Conn) {
-    messages := c.ListMessagesResponse {
-        Messages: httpHandler.Chat.Messages,
-    }
-
-    data, err := json.Marshal(&messages)
-
-    if err != nil {
-        log.Println("Failed to notify client")
-        return
-    }
-
-    conn.WriteMessage(websocket.BinaryMessage, data)
-
-    // httpHandler.Chat.MessagesUpdate.SetUpdated()
 }

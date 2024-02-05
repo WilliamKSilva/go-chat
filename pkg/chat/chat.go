@@ -1,30 +1,8 @@
 package chat
 
 import (
-	"log"
 	"slices"
-	"sync"
 )
-
-type Message struct {
-	ID       string `json:"id"`
-	Nickname string `json:"nickname"`
-	Content  string `json:"content"`
-}
-
-type DeleteMessageRequest struct {
-	MessageId string `json:"messageId"`
-}
-
-type ListMessagesResponse struct {
-	Messages []Message `json:"messages"`
-}
-
-type UpdateMessagesChannel struct {
-    mu sync.Mutex
-    Channel chan bool
-    Listeners int
-}
 
 type Chat struct {
 	Messages []Message
@@ -47,17 +25,4 @@ func (chat *Chat) IsEmpty() bool {
 	return len(chat.Messages) == 0
 }
 
-func (messagesChannel *UpdateMessagesChannel) NewListener() {
-    messagesChannel.mu.Lock()
 
-    messagesChannel.Listeners++
-
-    messagesChannel.mu.Unlock()
-}
-
-func (messagesChannel *UpdateMessagesChannel) NotifyListeners() {
-    for i := 0; i < messagesChannel.Listeners; i++ {
-        log.Println("teste")
-        messagesChannel.Channel <- true 
-    }
-}
