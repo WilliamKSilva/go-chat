@@ -8,7 +8,6 @@
 
         document.addEventListener("DOMContentLoaded", async function(){
             setChatFormListener();
-            await renderMessages();
 
             connectWebsocket();
             setWebsocketListeners(socket);
@@ -25,28 +24,40 @@
             }) 
 
             socket.addEventListener("message", (event) => {
-                console.log("recv: ", event.data)
+                const reader = new FileReader();
+                if (event.data instanceof Blob) {
+                    reader.addEventListener("loadend", () => {
+                        const decoder = new TextDecoder();
+                        const rawData = decoder.decode(reader.result);
+                        const data = JSON.parse(rawData);
+                        console.log(data)
+                        renderMessages(data.messages);
+                    })
+
+                    reader.readAsArrayBuffer(event.data);
+                }
             })
         }
 
-        function sendWebsocketMessage(message) {
+        function sendWebsocketMessage(content) {
             if (!socket) {
                 throw new Error("Websocket connection is not established!")
             }
 
+            const message = {
+                nickname: "william",
+                content: content
+            }
+
             console.log("Message sent!")
-            socket.send(message)
+            socket.send(JSON.stringify(message))
         }
 
         /* Messages */
-        async function renderMessages() {
+        function renderMessages(messages) {
             const list = document.getElementById("messages");
             
-            const response = await fetch("http://localhost:8080/list-message")
-
-            const messagesData = await response.json()
-
-            for (const message of messagesData.messages) {
+            for (const message of messages) {
                 const item = document.createElement("li");
                 item.textContent = message.content 
                 list.appendChild(item)

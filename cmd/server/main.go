@@ -38,13 +38,6 @@ func main() {
         log.Fatal(err.Error())
     }
 
-    message := Message{
-        Nickname: "test",
-        Content: "teste",
-    }
-
-    httpHandler.Chat.NewMessage(message)
-
 	http.HandleFunc("/chat", httpHandler.Websocket)
 	http.HandleFunc("/delete-message", httpHandler.DeleteMessage)
 	http.HandleFunc("/list-message", httpHandler.ListMessages)

@@ -19,7 +19,7 @@ type DeleteMessageRequest struct {
 }
 
 type ListMessagesResponse struct {
-	Messages []Message `json:"messages"`
+	Data []Message `json:"messages"`
 }
 
 type MessagesChannel struct {
@@ -42,12 +42,12 @@ func (mc *MessagesChannel) NotifyListeners() {
     }
 }
 
-func (mc*MessagesChannel) Listening(messages []Message, conn *websocket.Conn) {
+func (mc *MessagesChannel) Listening(messages *[]Message, conn *websocket.Conn) {
     msg := <-mc.Channel
 
     if msg {
         messagesResponse := ListMessagesResponse {
-            Messages: messages,
+            Data: *messages,
         }
 
         data, err := json.Marshal(&messagesResponse)

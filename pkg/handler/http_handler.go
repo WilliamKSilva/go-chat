@@ -44,7 +44,7 @@ func (httpHandler *HttpHandler) ListMessages(w http.ResponseWriter, r *http.Requ
 	// on the HTML page. Maybe there is an better way of injecting the data
 	// on HTML directly from the server but I dont know yet.
 	listMessagesResponse := ListMessagesResponse{
-		Messages: httpHandler.Chat.Messages,
+		Data: httpHandler.Chat.Messages,
 	}
 
 	data, err := json.Marshal(listMessagesResponse)
@@ -85,7 +85,7 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
 
 	for {
         // Listening to messages list update channel notify
-        go httpHandler.Chat.MessagesChannel.Listening(httpHandler.Chat.Messages, conn)
+        go httpHandler.Chat.MessagesChannel.Listening(&httpHandler.Chat.Messages, conn)
 
 		_, data, err := conn.ReadMessage()
         
@@ -94,6 +94,8 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
 			w.Write([]byte(internalServerError))
 			break
 		}
+
+        log.Println("Received message")
 
 		var message Message 
 		err = json.Unmarshal(data, &message)
@@ -106,11 +108,10 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
 		}
 
 		if httpHandler.Chat.IsEmpty() {
+            log.Println("Empty chat")
 			message.ID = "1"
-
-			log.Println("recv: ", message.Nickname)
-			log.Println("recv: ", message.Content)
 			httpHandler.Chat.NewMessage(message)
+            httpHandler.Chat.MessagesChannel.NotifyListeners()
 
 			continue
 		}
@@ -127,5 +128,6 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
 		message.ID = strconv.Itoa(lastMessageId + 1)
 
 		httpHandler.Chat.NewMessage(message)
+        httpHandler.Chat.MessagesChannel.NotifyListeners()
 	}
 }
