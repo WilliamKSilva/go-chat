@@ -1,14 +1,10 @@
 package chat
 
 import (
+	"log"
 	"slices"
 	"sync"
 )
-
-type MessagesUpdate struct {
-    mu sync.Mutex
-    Update bool
-}
 
 type Message struct {
 	ID       string `json:"id"`
@@ -24,9 +20,15 @@ type ListMessagesResponse struct {
 	Messages []Message `json:"messages"`
 }
 
+type UpdateMessagesChannel struct {
+    mu sync.Mutex
+    Channel chan bool
+    Listeners int
+}
+
 type Chat struct {
 	Messages []Message
-    MessagesUpdate MessagesUpdate
+    UpdateMessagesChannel UpdateMessagesChannel
 }
 
 func (chat *Chat) NewMessage(message Message) {
@@ -45,23 +47,17 @@ func (chat *Chat) IsEmpty() bool {
 	return len(chat.Messages) == 0
 }
 
-func (messagesUpdate *MessagesUpdate) Read() bool {
-    messagesUpdate.mu.Lock()
-    defer messagesUpdate.mu.Unlock()
+func (messagesChannel *UpdateMessagesChannel) NewListener() {
+    messagesChannel.mu.Lock()
 
-    return messagesUpdate.Update
+    messagesChannel.Listeners++
+
+    messagesChannel.mu.Unlock()
 }
 
-func (messagesUpdate *MessagesUpdate) SetUpdate() {
-    messagesUpdate.mu.Lock()
-    defer messagesUpdate.mu.Unlock()
-
-    messagesUpdate.Update = true 
-}
-
-func (messagesUpdate *MessagesUpdate) SetUpdated() {
-    messagesUpdate.mu.Lock()
-    defer messagesUpdate.mu.Unlock()
-
-    messagesUpdate.Update = false 
+func (messagesChannel *UpdateMessagesChannel) NotifyListeners() {
+    for i := 0; i < messagesChannel.Listeners; i++ {
+        log.Println("teste")
+        messagesChannel.Channel <- true 
+    }
 }

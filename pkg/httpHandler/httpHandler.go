@@ -81,10 +81,16 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
         return
     }
 
-
-    go httpHandler.listenToUpdateNotify(conn)
+    httpHandler.Chat.UpdateMessagesChannel.NewListener()
 
 	for {
+        go func() {
+            msg := <-httpHandler.Chat.UpdateMessagesChannel.Channel
+
+            if msg {
+                httpHandler.updateClientMessages(conn)
+            }
+        }()
 		_, data, err := conn.ReadMessage()
         
 		if err != nil {
@@ -99,10 +105,7 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
         // If there is an error the content is probably plain text
 		if err != nil {
             log.Println(string(data))
-            // TODO: understand why the data is not being sent to channel
-            // https://stackoverflow.com/questions/18660533/why-does-the-use-of-an-unbuffered-channel-in-the-same-goroutine-result-in-a-dead
-            // https://stackoverflow.com/questions/41000161/non-blocking-channel-operations-in-go-send
-            httpHandler.Chat.MessagesUpdate.SetUpdate()
+            httpHandler.Chat.UpdateMessagesChannel.NotifyListeners()
             continue
 		}
 
@@ -134,10 +137,10 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
 // This works but it is expensive i guess
 func (httpHandler *HttpHandler) listenToUpdateNotify(conn *websocket.Conn) {
     for {
-        update := httpHandler.Chat.MessagesUpdate.Read()
-        if update {
-            httpHandler.updateClientMessages(conn)
-        }
+        // update := httpHandler.Chat.MessagesUpdate.Read()
+        // if update {
+            // httpHandler.updateClientMessages(conn)
+        // }
     }
 }
 
@@ -156,5 +159,5 @@ func (httpHandler *HttpHandler) updateClientMessages(conn *websocket.Conn) {
 
     conn.WriteMessage(websocket.BinaryMessage, data)
 
-    httpHandler.Chat.MessagesUpdate.SetUpdated()
+    // httpHandler.Chat.MessagesUpdate.SetUpdated()
 }

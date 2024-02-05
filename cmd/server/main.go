@@ -14,8 +14,9 @@ var httpHandler HttpHandler
 
 func main() {
     httpHandler.Chat = Chat{} 
-    httpHandler.Chat.MessagesUpdate = MessagesUpdate{
-        Update: false,
+    httpHandler.Chat.UpdateMessagesChannel = UpdateMessagesChannel{
+        Channel: make(chan bool),
+        Listeners: 0,
     }
 
     gp := os.Getenv("GOPATH")
