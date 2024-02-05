@@ -1,6 +1,14 @@
 package chat
 
-import "slices"
+import (
+	"slices"
+	"sync"
+)
+
+type MessagesUpdate struct {
+    mu sync.Mutex
+    Update bool
+}
 
 type Message struct {
 	ID       string `json:"id"`
@@ -18,6 +26,7 @@ type ListMessagesResponse struct {
 
 type Chat struct {
 	Messages []Message
+    MessagesUpdate MessagesUpdate
 }
 
 func (chat *Chat) NewMessage(message Message) {
@@ -34,4 +43,25 @@ func (chat *Chat) DeleteMessage(id string) {
 
 func (chat *Chat) IsEmpty() bool {
 	return len(chat.Messages) == 0
+}
+
+func (messagesUpdate *MessagesUpdate) Read() bool {
+    messagesUpdate.mu.Lock()
+    defer messagesUpdate.mu.Unlock()
+
+    return messagesUpdate.Update
+}
+
+func (messagesUpdate *MessagesUpdate) SetUpdate() {
+    messagesUpdate.mu.Lock()
+    defer messagesUpdate.mu.Unlock()
+
+    messagesUpdate.Update = true 
+}
+
+func (messagesUpdate *MessagesUpdate) SetUpdated() {
+    messagesUpdate.mu.Lock()
+    defer messagesUpdate.mu.Unlock()
+
+    messagesUpdate.Update = false 
 }

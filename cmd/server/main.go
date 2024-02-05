@@ -14,6 +14,9 @@ var httpHandler HttpHandler
 
 func main() {
     httpHandler.Chat = Chat{} 
+    httpHandler.Chat.MessagesUpdate = MessagesUpdate{
+        Update: false,
+    }
 
     gp := os.Getenv("GOPATH")
     htmlPath := path.Join(gp, "web/index.html")

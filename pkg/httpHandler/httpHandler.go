@@ -22,7 +22,7 @@ type HttpHandler struct {
 var upgrader = websocket.Upgrader{}
 var internalServerError string = "Internal server error"
 
-func (httpHandler HttpHandler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
+func (httpHandler *HttpHandler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	log.Println("Delete message handler!")
 	var deleteMessageRequest c.DeleteMessageRequest
 
@@ -39,7 +39,7 @@ func (httpHandler HttpHandler) DeleteMessage(w http.ResponseWriter, r *http.Requ
 	httpHandler.Chat.DeleteMessage(deleteMessageRequest.MessageId)
 }
 
-func (httpHandler HttpHandler) ListMessages(w http.ResponseWriter, r *http.Request) {
+func (httpHandler *HttpHandler) ListMessages(w http.ResponseWriter, r *http.Request) {
 	// TODO: This will be used by the Javascript script file to display the content
 	// on the HTML page. Maybe there is an better way of injecting the data
 	// on HTML directly from the server but I dont know yet.
@@ -58,12 +58,14 @@ func (httpHandler HttpHandler) ListMessages(w http.ResponseWriter, r *http.Reque
 	w.Write(data)
 }
 
-func (httpHandler HttpHandler) Html(w http.ResponseWriter, r *http.Request) {
+func (httpHandler *HttpHandler) Html(w http.ResponseWriter, r *http.Request) {
 	w.Write(httpHandler.HtmlFile.Data)
 }
 
-func (httpHandler HttpHandler) Websocket(w http.ResponseWriter, r *http.Request) {
+func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
+
+    log.Println("Client connected!")
 
 	if err != nil {
 		log.Println("Error upgrading websocket request")
@@ -78,6 +80,9 @@ func (httpHandler HttpHandler) Websocket(w http.ResponseWriter, r *http.Request)
         log.Println("Error sending message")
         return
     }
+
+
+    go httpHandler.listenToUpdateNotify(conn)
 
 	for {
 		_, data, err := conn.ReadMessage()
@@ -94,7 +99,11 @@ func (httpHandler HttpHandler) Websocket(w http.ResponseWriter, r *http.Request)
         // If there is an error the content is probably plain text
 		if err != nil {
             log.Println(string(data))
-            return
+            // TODO: understand why the data is not being sent to channel
+            // https://stackoverflow.com/questions/18660533/why-does-the-use-of-an-unbuffered-channel-in-the-same-goroutine-result-in-a-dead
+            // https://stackoverflow.com/questions/41000161/non-blocking-channel-operations-in-go-send
+            httpHandler.Chat.MessagesUpdate.SetUpdate()
+            continue
 		}
 
 		if httpHandler.Chat.IsEmpty() {
@@ -118,10 +127,34 @@ func (httpHandler HttpHandler) Websocket(w http.ResponseWriter, r *http.Request)
 
 		message.ID = strconv.Itoa(lastMessageId + 1)
 
-		log.Println("recv: ", message.Nickname)
-		log.Println("recv: ", message.Content)
 		httpHandler.Chat.NewMessage(message)
-
-	    log.Println(len(httpHandler.Chat.Messages))
 	}
+}
+
+// This works but it is expensive i guess
+func (httpHandler *HttpHandler) listenToUpdateNotify(conn *websocket.Conn) {
+    for {
+        update := httpHandler.Chat.MessagesUpdate.Read()
+        if update {
+            httpHandler.updateClientMessages(conn)
+        }
+    }
+}
+
+// Send all messages to user client when new messages are added
+func (httpHandler *HttpHandler) updateClientMessages(conn *websocket.Conn) {
+    messages := c.ListMessagesResponse {
+        Messages: httpHandler.Chat.Messages,
+    }
+
+    data, err := json.Marshal(&messages)
+
+    if err != nil {
+        log.Println("Failed to notify client")
+        return
+    }
+
+    conn.WriteMessage(websocket.BinaryMessage, data)
+
+    httpHandler.Chat.MessagesUpdate.SetUpdated()
 }
