@@ -22,30 +22,28 @@ type ListMessagesResponse struct {
 	Messages []Message `json:"messages"`
 }
 
-type UpdateMessagesChannel struct {
+type MessagesChannel struct {
     mu sync.Mutex
     Channel chan bool
     Listeners int
 }
 
-func (messagesChannel *UpdateMessagesChannel) NewListener() {
-    messagesChannel.mu.Lock()
+func (mc *MessagesChannel) NewListener() {
+    mc.mu.Lock()
 
-    messagesChannel.Listeners++
+    mc.Listeners++
 
-    messagesChannel.mu.Unlock()
+    mc.mu.Unlock()
 }
 
-func (messagesChannel *UpdateMessagesChannel) NotifyListeners() {
-    for i := 0; i < messagesChannel.Listeners; i++ {
-        messagesChannel.Channel <- true 
+func (mc *MessagesChannel) NotifyListeners() {
+    for i := 0; i < mc.Listeners; i++ {
+        mc.Channel <- true 
     }
 }
 
-func (messagesChannel *UpdateMessagesChannel) Listening(messages []Message, conn *websocket.Conn) {
-    msg := <-messagesChannel.Channel
-
-    log.Println(msg)
+func (mc*MessagesChannel) Listening(messages []Message, conn *websocket.Conn) {
+    msg := <-mc.Channel
 
     if msg {
         messagesResponse := ListMessagesResponse {

@@ -81,11 +81,11 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
         return
     }
 
-    httpHandler.Chat.UpdateMessagesChannel.NewListener()
+    httpHandler.Chat.MessagesChannel.NewListener()
 
 	for {
         // Listening to messages list update channel notify
-        go httpHandler.Chat.UpdateMessagesChannel.Listening(httpHandler.Chat.Messages, conn)
+        go httpHandler.Chat.MessagesChannel.Listening(httpHandler.Chat.Messages, conn)
 
 		_, data, err := conn.ReadMessage()
         
@@ -101,7 +101,7 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
         // If there is an error the content is probably plain text
 		if err != nil {
             log.Println(string(data))
-            httpHandler.Chat.UpdateMessagesChannel.NotifyListeners()
+            httpHandler.Chat.MessagesChannel.NotifyListeners()
             continue
 		}
 

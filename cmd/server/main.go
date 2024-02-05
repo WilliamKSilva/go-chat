@@ -14,7 +14,7 @@ var httpHandler HttpHandler
 
 func main() {
     httpHandler.Chat = Chat{} 
-    httpHandler.Chat.UpdateMessagesChannel = UpdateMessagesChannel{
+    httpHandler.Chat.MessagesChannel = MessagesChannel{
         Channel: make(chan bool),
         Listeners: 0,
     }

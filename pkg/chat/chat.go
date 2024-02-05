@@ -6,7 +6,7 @@ import (
 
 type Chat struct {
 	Messages []Message
-    UpdateMessagesChannel UpdateMessagesChannel
+    MessagesChannel MessagesChannel
 }
 
 func (chat *Chat) NewMessage(message Message) {
