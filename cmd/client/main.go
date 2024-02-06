@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/url"
 
-	chat "github.com/WilliamKSilva/go-chat/internal"
+	. "github.com/WilliamKSilva/go-chat/pkg/chat"
 	"github.com/gorilla/websocket"
 )
 
@@ -27,7 +27,7 @@ func connectWebsocket() {
     }
     defer c.Close()
 
-    message := chat.Message{
+    message := Message{
         Nickname: "ddos",
         Content: "This is an spam test",
     }
