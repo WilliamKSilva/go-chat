@@ -30,7 +30,6 @@
                         const decoder = new TextDecoder();
                         const rawData = decoder.decode(reader.result);
                         const data = JSON.parse(rawData);
-                        console.log(data)
                         renderMessages(data.messages);
                     })
 
@@ -49,23 +48,36 @@
                 content: content
             }
 
-            console.log("Message sent!")
             socket.send(JSON.stringify(message))
         }
 
         /* Messages */
         function renderMessages(messages) {
             const list = document.getElementById("messages");
+            deleteMessagesFromList();
             
             for (const message of messages) {
                 const item = document.createElement("li");
                 item.textContent = message.content 
+                item.classList.add("message")
                 list.appendChild(item)
+            }
+        }
+
+        function deleteMessagesFromList() {
+            const list = document.getElementById("messages");
+            while(list.firstChild) {
+                list.removeChild(list.firstChild);
             }
         }
 
         async function sendMessage() {
             await fetch("http://localhost:8080/new-message")
+        }
+
+        function createMessageHTMLElement(listItem) {
+           const div = document.createElement("div") 
+           item.classList.add("message")
         }
 
         function setChatFormListener() {
@@ -111,12 +123,17 @@
       }
 
       .messages-list {
+          display: flex;
+          flex-direction: column;
           flex-grow: 1;
+          gap: 1rem;
           list-style-type: none;
       }
 
       .message {
           width: 20%;
+          padding: 0.5rem;
+          border-radius: 2px;
           background-color: orange;
           border: 0px;
       }
@@ -145,8 +162,8 @@
     <main>
         <div class="chat">
             <div class="messages-wrapper">
-                <li id="messages" class="messages-list">
-                </li>
+                <ul id="messages" class="messages-list">
+                </ul>
             </div>
             <form id="chat-form" class="chat-form">
                 <input
