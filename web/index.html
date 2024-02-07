@@ -2,12 +2,37 @@
 <html>
   <head>
     <script>
+        const chatHTMLTemplate = `
+            <div class="messages-wrapper">
+                <ul id="messages" class="messages-list">
+                </ul>
+            </div>
+            <form id="chat-form" class="chat-form">
+                <input
+                    id="chat-input"
+                    name="message"
+                    class="chat-input"
+                    placeholder="Write your message here..."
+                />
+                <button class="chat-send-button">
+                    Send
+                </button>
+            </form>
+        `;
+
+        const nicknameHTMLTemplate = `
+            <span>Choose your chat nickname</span>
+            <input id="nickname-input" class="nickname-input" placeholder="Nickname..." />
+            <button onclick="saveNickname()">Save</button>
+        `;
+
         // TODO: move this to an script.js" file 
         const websocketURL = "ws://localhost:8080/chat"
         let socket;
+        let nickname;
 
         document.addEventListener("DOMContentLoaded", async function(){
-            setChatFormListener();
+            showNickname();
 
             connectWebsocket();
             setWebsocketListeners(socket);
@@ -44,40 +69,81 @@
             }
 
             const message = {
-                nickname: "william",
+                nickname: nickname,
                 content: content
             }
+
+            console.log(message);
 
             socket.send(JSON.stringify(message))
         }
 
         /* Messages */
+        function showNickname() {
+            const main = document.getElementsByTagName("main")[0];
+            const div = document.createElement("div");
+            div.classList.add("nickname-wrapper")
+            div.id = "nickname";
+            div.innerHTML = nicknameHTMLTemplate; 
+            main.appendChild(div);
+        }
+
+        function destroyNickname() {
+            const nicknameWrapper = document.getElementById("nickname");
+            nicknameWrapper.remove();
+        }
+
+        function showChat(show) {
+            const main = document.getElementsByTagName("main")[0];
+
+            const div = document.createElement("div");
+            div.classList.add("chat")
+            div.id = "chat";
+            div.innerHTML = chatHTMLTemplate;
+            main.appendChild(div);
+
+            setChatFormListener();
+        }
+
+        function destroyChat() {
+            const chat = document.getElementById("chat");
+            chat.remove();
+        }
+
         function renderMessages(messages) {
             const list = document.getElementById("messages");
             deleteMessagesFromList();
             
             for (const message of messages) {
                 const item = document.createElement("li");
-                item.textContent = message.content 
+                const fullMessage = `${message.nickname}: ${message.content}`
+                item.textContent = fullMessage 
                 item.classList.add("message")
                 list.appendChild(item)
             }
         }
 
-        function deleteMessagesFromList() {
-            const list = document.getElementById("messages");
-            while(list.firstChild) {
-                list.removeChild(list.firstChild);
-            }
-        }
+        function saveNickname() {
+            const nicknameInput = document.getElementById("nickname-input");
+            nickname = nicknameInput.value;
 
-        async function sendMessage() {
-            await fetch("http://localhost:8080/new-message")
+            console.log(nickname);
+
+            destroyNickname();
+            showChat();
         }
 
         function createMessageHTMLElement(listItem) {
            const div = document.createElement("div") 
            item.classList.add("message")
+        }
+
+        function deleteMessagesFromList() {
+            const messages = document.getElementById("messages")
+
+            while(messages.firstChild) {
+                messages.removeChild(messages.firstChild);
+            }
         }
 
         function setChatFormListener() {
@@ -150,6 +216,20 @@
           padding: 0px;
           border: 0;
       }
+
+      .nickname-wrapper {
+          display: flex;
+          gap: 1rem;
+          align-items: center;
+          flex-direction: column;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+      }
+
+      .nickname-input {
+          padding: 0px;
+      }
         
       .chat-send-button {
           flex-grow: 1;
@@ -160,23 +240,6 @@
   </head>
   <body>
     <main>
-        <div class="chat">
-            <div class="messages-wrapper">
-                <ul id="messages" class="messages-list">
-                </ul>
-            </div>
-            <form id="chat-form" class="chat-form">
-                <input
-                    id="chat-input"
-                    name="message"
-                    class="chat-input"
-                    placeholder="Write your message here..."
-                />
-                <button class="chat-send-button">
-                    Send
-                </button>
-            </form>
-        </div>
     </main>
   </body>
 </html>
