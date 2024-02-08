@@ -83,10 +83,10 @@ func (httpHandler *HttpHandler) Websocket(w http.ResponseWriter, r *http.Request
 
     httpHandler.Chat.MessagesChannel.NewListener()
 
-	for {
-        // Listening to messages list update channel notify
-        go httpHandler.Chat.MessagesChannel.Listening(&httpHandler.Chat.Messages, conn)
+    // Listening to messages list update channel notify
+    go httpHandler.Chat.MessagesChannel.Listening(&httpHandler.Chat.Messages, conn)
 
+	for {
 		_, data, err := conn.ReadMessage()
         
 		if err != nil {

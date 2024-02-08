@@ -30,33 +30,36 @@ type MessagesChannel struct {
 
 func (mc *MessagesChannel) NewListener() {
     mc.mu.Lock()
-
     mc.Listeners++
-
     mc.mu.Unlock()
 }
 
 func (mc *MessagesChannel) NotifyListeners() {
+    mc.mu.Lock()
     for i := 0; i < mc.Listeners; i++ {
         mc.Channel <- true 
     }
+    mc.mu.Unlock()
 }
 
 func (mc *MessagesChannel) Listening(messages *[]Message, conn *websocket.Conn) {
-    msg := <-mc.Channel
+    for {
+        msg := <-mc.Channel
 
-    if msg {
-        messagesResponse := ListMessagesResponse {
-            Data: *messages,
+        if msg {
+            log.Println("Updating client list")
+            messagesResponse := ListMessagesResponse {
+                Data: *messages,
+            }
+
+            data, err := json.Marshal(&messagesResponse)
+
+            if err != nil {
+                log.Println("Failed to notify client")
+                return
+            }
+
+            conn.WriteMessage(websocket.BinaryMessage, data)
         }
-
-        data, err := json.Marshal(&messagesResponse)
-
-        if err != nil {
-            log.Println("Failed to notify client")
-            return
-        }
-
-        conn.WriteMessage(websocket.BinaryMessage, data)
     }
 }

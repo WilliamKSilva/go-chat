@@ -40,7 +40,9 @@
 
         /* Websockets */
         function connectWebsocket() {
+            console.log("connect websocket")
             socket = new WebSocket(websocketURL);
+            console.log(socket)
         }
 
         function setWebsocketListeners(socket) {
@@ -72,8 +74,6 @@
                 nickname: nickname,
                 content: content
             }
-
-            console.log(message);
 
             socket.send(JSON.stringify(message))
         }
@@ -113,7 +113,7 @@
         function renderMessages(messages) {
             const list = document.getElementById("messages");
             deleteMessagesFromList();
-            
+
             for (const message of messages) {
                 const item = document.createElement("li");
                 const fullMessage = `${message.nickname}: ${message.content}`
@@ -190,7 +190,9 @@
 
       .messages-list {
           display: flex;
+          max-height: 97%;
           flex-direction: column;
+          overflow-y: scroll;
           flex-grow: 1;
           gap: 1rem;
           list-style-type: none;
